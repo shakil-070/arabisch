@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kompas Arabisch: leer de letters lezen</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#EAF1F8;--card:#fff;--ink:#13294B;--mut:#5B6B85;--line:#D3DEEB;--pri:#13294B;--onpri:#fff;--gold:#FFC93C;--ok:#1B9C85;--bad:#D64550;--soft:#DDF3EE}
+@media(prefers-color-scheme:dark){:root{--bg:#0F1A2E;--card:#182642;--ink:#EEF3FA;--mut:#9FB0C8;--line:#2B3C5C;--pri:#FFC93C;--onpri:#13294B;--soft:#16403B}}
+*{box-sizing:border-box}
+body{margin:0 auto;max-width:640px;padding:0 14px 48px;font:600 16px/1.5 Nunito,system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+h1{font-size:1.35rem;font-weight:800;margin:18px 0 10px}
+h2{font-size:1.1rem;font-weight:800;margin:0 0 6px}
+p{margin:6px 0}
+.bar{height:10px;background:var(--line);border-radius:9px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--gold);transition:width .4s}
+#pt{color:var(--mut);font-size:.9rem}
+nav{display:flex;gap:6px;margin:12px 0;overflow-x:auto}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+nav button,.chip{border:2px solid var(--line);background:var(--card);padding:8px 14px;border-radius:20px;white-space:nowrap}
+nav button.on,.chip.on{background:var(--pri);color:var(--onpri);border-color:var(--pri)}
+.ar{font-family:Amiri,'Noto Naskh Arabic','Traditional Arabic',serif;direction:rtl;line-height:1.5}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tile{position:relative;border:2px solid var(--line);background:var(--card);border-radius:14px;padding:6px 2px;display:flex;flex-direction:column;align-items:center}
+.tile .ar{font-size:2.3rem}
+.tile small{color:var(--mut)}
+.tile.ok{background:var(--soft);border-color:var(--ok)}
+.tile.ok::after{content:"✓";position:absolute;top:2px;right:8px;color:var(--ok);font-weight:800}
+.card{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:16px;margin:12px 0;text-align:center}
+.big{font-size:7rem;line-height:1.3;cursor:pointer}
+.tap{cursor:pointer}
+.btn{border:0;background:var(--pri);color:var(--onpri);padding:10px 20px;border-radius:14px;font-weight:800;margin:6px 4px}
+.forms{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
+.fm span{display:block;font-size:2.6rem;border-bottom:3px solid var(--gold)}
+.fm.dim span{opacity:.35}
+.fm small{color:var(--mut)}
+.tag{display:inline-block;background:var(--gold);color:#13294B;border-radius:10px;padding:2px 10px;font-size:.85rem;font-weight:800;margin:4px}
+.opts{display:grid;gap:8px;margin:12px 0}
+.opt{border:2px solid var(--line);background:var(--card);border-radius:14px;padding:10px;font-size:1.1rem}
+.opt .ar{font-size:2.6rem;display:block}
+.opt.right{background:var(--soft);border-color:var(--ok)}
+.opt.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 18%,var(--card))}
+.row{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.pairs{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:8px 0}
+.pairs .chip .ar{font-size:1.8rem;vertical-align:middle}
+.card.l{text-align:left}
+.warn{background:var(--gold);color:#13294B;border-radius:12px;padding:10px 14px;margin:10px 0;font-size:.9rem}
+.warn[hidden]{display:none}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<h1>🧭 Kompas Arabisch</h1>
+<div class="bar"><i id="fill"></i></div>
+<div id="pt"></div>
+<div id="warn" class="warn" hidden>🔇 Geen geluid beschikbaar. Zet de mp3-bestanden in de map audio/letters (bijvoorbeeld ba.mp3). Zonder die bestanden heeft je apparaat een Arabische stem nodig, en die ontbreekt hier. Controleer ook of je telefoon niet op stil staat.</div>
+<nav id="nav"></nav>
+<main id="app"></main>
+
+<script>
+/* id | letter | Arabische naam | naam | hint | h = zware letter, n = verbindt niet met volgende letter */
+const L=`alif|ا|ألف|alif|Geen eigen klank: draagt een klinker|n
+ba|ب|باء|ba|Een b, zoals in bal|
+ta|ت|تاء|ta|Een t, zoals in tak|
+tha|ث|ثاء|tha|Als de th in het Engelse think|
+jim|ج|جيم|djiem|Een dj, zoals in jeans|
+hha|ح|حاء|ha (keel)|Zachte, diepe h uit de keel|
+kha|خ|خاء|cha|Als de ch in lachen, iets dieper|h
+dal|د|دال|dal|Een d, zoals in dak|n
+dhal|ذ|ذال|dhal|Als de th in het Engelse this|n
+ra|ر|راء|ra|Een gerolde r|n
+zay|ز|زاي|zaj|Een z, zoals in zon|n
+sin|س|سين|sien|Een s, zoals in sap|
+shin|ش|شين|sjien|Een sj, zoals in sjaal|
+sad|ص|صاد|sad|Een zware s, diep en vol|h
+dad|ض|ضاد|dad|Een zware d, diep en vol|h
+tta|ط|طاء|ta (zwaar)|Een zware t, diep en vol|h
+zha|ظ|ظاء|dha (zwaar)|Een zware th, diep en vol|h
+ayn|ع|عين|ajn|Keelklank, geen Nederlandse tegenhanger|
+ghayn|غ|غين|ghajn|Een gorgelende g, diep in de keel|h
+fa|ف|فاء|fa|Een f, zoals in fiets|
+qaf|ق|قاف|qaf|Een k diep achter in de keel|h
+kaf|ك|كاف|kaf|Een k, zoals in kat|
+lam|ل|لام|lam|Een l, zoals in lamp|
+mim|م|ميم|miem|Een m, zoals in mama|
+nun|ن|نون|noen|Een n, zoals in neus|
+ha|ه|هاء|ha|Een lichte h, zoals in hoed|
+waw|و|واو|waw|Een w (Engels water) of lange oe|n
+ya|ي|ياء|ja|Een j, zoals in jas|`.split('\n').map(r=>{const[id,ar,n,nl,hint,f='']=r.split('|');return{id,ar,n,nl,hint,h:f.includes('h'),nc:f.includes('n')}});
+
+/* Letters die op elkaar lijken (vorm of klank): gebruikt voor de modus Uitdaging */
+const SIM=['بتثني','جحخ','دذ','رز','سش','صض','طظ','عغ','فق','ثسص','حهخ','كق','تط','دض','ذزظ','عا'];
+const J='\u200D',$=s=>document.querySelector(s),sh=a=>[...a].sort(()=>Math.random()-.5);
+const T=[['leren','Leren'],['kaart','Flashcards'],['quiz','Meerkeuze'],['uitleg','Uitleg']];
+let S={},tab='leren',cur,flip,q,ch,lock,msg,hard=0;
+try{S=JSON.parse(localStorage.getItem('ka1')||'{}')}catch(e){}
+const save=()=>{try{localStorage.setItem('ka1',JSON.stringify(S))}catch(e){}};
+const st=id=>S[id]||0,done=id=>st(id)>=2,get=id=>L.find(l=>l.id==id);
+const forms=l=>[['los',l.ar],['begin',l.nc?l.ar:l.ar+J],['midden',l.nc?l.ar:J+l.ar+J],['einde',J+l.ar]];
+
+/* Geluid: eerst audio/letters/<id>.mp3, anders de stem van het apparaat als noodoplossing */
+function note(){$('#warn').hidden=false}
+function tts(l){try{const vs=speechSynthesis.getVoices(),v=vs.find(x=>x.lang.toLowerCase().startsWith('ar'));if(vs.length&&!v){note();return}speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(l.n);if(v)u.voice=v;u.lang=v?v.lang:'ar-SA';u.rate=.7;setTimeout(()=>speechSynthesis.speak(u),60)}catch(e){note()}}
+try{speechSynthesis.getVoices()}catch(e){}
+function say(l){let f=0;const fb=()=>{if(!f){f=1;tts(l)}};const a=new Audio('audio/letters/'+l.id+'.mp3');a.onerror=fb;a.play().catch(fb)}
+
+function prog(){const m=L.filter(l=>done(l.id)).length;$('#fill').style.width=m/L.length*100+'%';$('#pt').textContent=m+' van '+L.length+' letters beheerst'+(m==L.length?' 🎉 Alle letters beheerst!':'')}
+function go(t){tab=t;$('#nav').innerHTML=T.map(x=>`<button class="${x[0]==t?'on':''}" onclick="go('${x[0]}')">${x[1]}</button>`).join('');({leren,kaart,quiz,uitleg})[t]();prog()}
+function pick(prev){const p=L.filter(l=>l.id!=prev),w=p.map(l=>done(l.id)?1:5);let r=Math.random()*w.reduce((a,b)=>a+b,0);for(let i=0;i<p.length;i++){r-=w[i];if(r<0)return p[i]}return p[0]}
+
+/* Leren */
+function leren(){$('#app').innerHTML=`<p>Tik op een letter om te zien hoe je hem schrijft en te horen hoe hij klinkt.</p><div class="grid">${L.map(l=>`<button class="tile ${done(l.id)?'ok':''}" onclick="detail('${l.id}')"><span class="ar" lang="ar">${l.ar}</span><small>${l.nl}</small></button>`).join('')}</div><div id="det"></div>`}
+function detail(id){const l=get(id);say(l);$('#det').innerHTML=`<div class="card"><div class="ar big" lang="ar" onclick="say(get('${id}'))">${l.ar}</div><h2>${l.nl} <span class="ar" lang="ar">${l.n}</span></h2><p>${l.hint}</p>${l.h?'<span class="tag">Zware letter: zie Uitleg</span>':''}${l.nc?'<span class="tag">Verbindt niet met de volgende letter</span>':''}<div class="forms">${forms(l).map((f,i)=>`<div class="fm ${l.nc&&(i==1||i==2)?'dim':''}"><span class="ar" lang="ar">${f[1]}</span><small>${f[0]}</small></div>`).join('')}</div><button class="btn" onclick="say(get('${id}'))">🔊 Nog een keer horen</button></div>`;$('#det').scrollIntoView({behavior:'smooth',block:'nearest'})}
+
+/* Flashcards (tellen niet mee voor beheersing; oefenen) */
+function kaart(){cur=pick(cur&&cur.id);flip=0;drawK()}
+function drawK(){const l=cur;$('#app').innerHTML=flip?`<div class="card"><div class="ar big" lang="ar">${l.ar}</div><h2>${l.nl} <span class="ar" lang="ar">${l.n}</span></h2><p>${l.hint}</p><button class="btn" onclick="say(cur)">🔊 Horen</button><button class="btn" onclick="kaart()">Volgende ▶</button></div>`:`<div class="card tap" onclick="flip=1;say(cur);drawK()"><div class="ar big" lang="ar">${l.ar}</div><p>Tik om te draaien en te horen</p></div>`}
+
+/* Meerkeuze: beheerst = 2 keer achter elkaar goed */
+function opts(l,n){const m=SIM.filter(g=>g.includes(l.ar)).join('').split('').filter(c=>c!=l.ar),mt=L.filter(x=>x.id!=l.id&&m.includes(x.ar)),ot=L.filter(x=>x.id!=l.id&&!m.includes(x.ar)),pool=hard?[...sh(mt),...sh(ot)]:sh(ot);return sh([l,...pool.slice(0,n-1)])}
+function quiz(){const l=pick(q&&q.l.id),hear=Math.random()<.5;q={l,hear,o:opts(l,hard?4:3)};ch=null;lock=0;msg='';drawQ();if(hear)say(l)}
+function ans(id){if(lock)return;lock=1;ch=id;const r=id==q.l.id;S[q.l.id]=r?st(q.l.id)+1:0;save();msg=r?(st(q.l.id)==2?'Beheerst! 🌟':'Goed zo! ✅'):'Bijna! Het goede antwoord staat groen.';drawQ();prog()}
+function setHard(h){hard=h;quiz()}
+function drawQ(){const c=o=>lock?(o.id==q.l.id?'right':o.id==ch?'wrong':''):'';$('#app').innerHTML=`<div class="row"><button class="chip ${hard?'':'on'}" onclick="setHard(0)">Makkelijk</button><button class="chip ${hard?'on':''}" onclick="setHard(1)">Uitdaging</button></div><div class="card"><p>${q.hear?'Welke letter hoor je?':'Hoe heet deze letter?'}</p>${q.hear?'<button class="btn" onclick="say(q.l)">🔊 Horen</button>':`<div class="ar big" lang="ar">${q.l.ar}</div>`}<div class="opts">${q.o.map(o=>`<button class="opt ${c(o)}" onclick="ans('${o.id}')">${q.hear?`<span class="ar" lang="ar">${o.ar}</span>`:o.nl}</button>`).join('')}</div><p>${msg}</p>${lock?'<button class="btn" onclick="quiz()">Volgende ▶</button>':''}</div>`}
+
+/* Uitleg */
+const chips=a=>`<div class="pairs">${a.map(id=>{const l=get(id);return`<button class="chip" onclick="say(get('${id}'))">🔊 <span class="ar" lang="ar">${l.ar}</span> ${l.nl}</button>`}).join('')}</div>`;
+function uitleg(){$('#app').innerHTML=`<div class="card l"><h2>Zware letters</h2><p>Bij deze 7 letters trek je de achterkant van je tong omhoog naar je gehemelte. De klank wordt vol en diep, en je mond wordt iets ronder.</p>${chips(['kha','sad','dad','tta','zha','ghayn','qaf'])}<p>Luister naar het verschil tussen een lichte en een zware letter:</p>${chips(['sin','sad','dal','dad','ta','tta','dhal','zha'])}</div><div class="card l"><h2>Letters die niet verbinden</h2><p>Deze 6 letters verbinden alleen met de letter vóór hen, niet met de letter erna. Na zo’n letter begin je de volgende letter weer met zijn beginvorm.</p>${chips(['alif','dal','dhal','ra','zay','waw'])}<p>Daarom zijn hun begin- en middenvorm hetzelfde als de losse letter.</p></div>`}
+go('leren');
+</script>
+</body>
+</html>
